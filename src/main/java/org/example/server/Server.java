@@ -19,8 +19,7 @@ import java.nio.channels.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
-
-
+import java.util.concurrent.*;
 
 
 public class Server {
@@ -28,6 +27,11 @@ public class Server {
     private final CollectionManager collectionManager;
     private final CommandManager commandManager;
     private HashMap<String, SocketChannel> users = new HashMap<>();
+
+    // Пул потоков для чтения запросов
+    private final ExecutorService readingPool = Executors.newCachedThreadPool();
+    // Пул потоков для отправки ответов
+    private final ExecutorService sendingPool = Executors.newFixedThreadPool(10);
 
     public Server() {
         this.collectionManager = new CollectionManager();
@@ -75,99 +79,127 @@ public class Server {
         System.out.println("New connection from " + clientChannel.getRemoteAddress());
     }
 
-
     private void handleRead(SelectionKey key, Selector selector) throws IOException {
         SocketChannel clientChannel = (SocketChannel) key.channel();
-        ByteArrayOutputStream baos = (ByteArrayOutputStream) key.attachment();
 
-        if (baos == null) {
-            baos = new ByteArrayOutputStream();
-            key.attach(baos);
-        }
+        // Передаем обработку чтения в cached thread pool
+        readingPool.submit(() -> {
+            ByteArrayOutputStream baos = (ByteArrayOutputStream) key.attachment();
 
-        ByteBuffer buffer = ByteBuffer.allocate(8192);
-
-        try {
-            int bytesRead = clientChannel.read(buffer);
-            if (bytesRead == -1) {
-                System.err.println("Client " + clientChannel.getRemoteAddress() + " disconnected");
-                clientChannel.close();
-                key.cancel();
-                return;
+            if (baos == null) {
+                baos = new ByteArrayOutputStream();
+                key.attach(baos);
             }
 
-            if (bytesRead > 0) {
-                buffer.flip();
-                baos.write(buffer.array(), 0, buffer.limit());
-                buffer.clear();
+            ByteBuffer buffer = ByteBuffer.allocate(8192);
 
-                byte[] data = baos.toByteArray();
-                if (data.length > 0) {
-                    try (ByteArrayInputStream bi = new ByteArrayInputStream(data);
-                         ObjectInputStream oi = new ObjectInputStream(bi)) {
+            try {
+                int bytesRead = clientChannel.read(buffer);
+                if (bytesRead == -1) {
+                    System.err.println("Client " + clientChannel.getRemoteAddress() + " disconnected");
+                    clientChannel.close();
+                    key.cancel();
+                    return null;
+                }
 
-                        Request request = (Request) oi.readObject();
-                        System.out.println("Received request from client: " + clientChannel.getRemoteAddress());
+                if (bytesRead > 0) {
+                    buffer.flip();
+                    baos.write(buffer.array(), 0, buffer.limit());
+                    buffer.clear();
 
-                        baos.reset();
-                        key.attach(null);
+                    byte[] data = baos.toByteArray();
+                    if (data.length > 0) {
+                        try (ByteArrayInputStream bi = new ByteArrayInputStream(data);
+                             ObjectInputStream oi = new ObjectInputStream(bi)) {
 
-                        Response response;
+                            Request request = (Request) oi.readObject();
+                            System.out.println("Received request from client: " + clientChannel.getRemoteAddress());
 
-                        String login = request.getLogin();
-                        String password = request.getPassword();
+                            baos.reset();
+                            key.attach(null);
 
-                        if (users.containsKey(login)) {
-                            if (users.get(login).equals(clientChannel)) {
+                            // Обработку запроса выполняем в новом потоке
+                            Thread processingThread = new Thread(() -> {
+                                Response response = processRequest(request, clientChannel);
+
+                                // Отправку ответа выполняем в fixed thread pool
+                                sendingPool.submit(() -> {
+                                    try {
+                                        sendResponse(clientChannel, response);
+                                        clientChannel.register(selector, SelectionKey.OP_READ);
+                                    } catch (IOException e) {
+                                        System.err.println("Error sending response: " + e.getMessage());
+                                    }
+                                });
+                            });
+
+                            processingThread.start();
+
+                        } catch (StreamCorruptedException | EOFException e) {
+                            // Waiting for more data
+                        } catch (ClassNotFoundException e) {
+                            System.err.println("Unknown class received: " + e.getMessage());
+                            sendingPool.submit(() -> {
                                 try {
-                                    response = new Response(null, commandManager.doCommand(request, collectionManager));
-                                } catch (Exception e) {
-                                    response = new Response("Command execution error: " + e.getMessage(), null);
+                                    sendResponse(clientChannel, new Response("Deserialization error: " + e.getMessage(), null));
+                                } catch (IOException ex) {
+                                    System.err.println("Error sending error response: " + ex.getMessage());
                                 }
-
-                            } else {
-                                response = new Response("Something went wrong", null);
-                            }
-
-                        } else if (request.getCommandName().equals("login")) {
-                            if (DataBaseManager.checkUser(login, password)){
-                                response = new Response("You are log in!", null);
-                                users.put(login, clientChannel);
-                            } else {
-                                response = new Response("You are not log in.", null);
-                            }
-
-                        } else if (request.getCommandName().equals("register")){
-                            if (DataBaseManager.insertUser(login, password)){
-                                response = new Response("You are log in", null);
-                                users.put(login, clientChannel);
-                            } else {
-                                response = new Response("Something went wrong", null);
-                            }
-
-                        } else {
-                            response = new Response("Please, log in", null);
+                            });
                         }
 
-
-                        sendResponse(clientChannel, response);
-                        clientChannel.register(selector, SelectionKey.OP_READ);
-                    } catch (StreamCorruptedException | EOFException e) {
-                        // Waiting for more data
-                    } catch (ClassNotFoundException e) {
-                        System.err.println("Unknown class received: " + e.getMessage());
-                        sendResponse(clientChannel, new Response("Deserialization error: " + e.getMessage(), null));
                     }
                 }
+            } catch (SocketException e) {
+                System.err.println("Connection reset: " + e.getMessage());
+                try {
+                    clientChannel.close();
+                    key.cancel();
+                } catch (IOException ex) {
+                    System.err.println("Error closing channel: " + ex.getMessage());
+                }
+            } catch (IOException e) {
+                System.err.println("IO error during reading: " + e.getMessage());
             }
-        } catch (SocketException e) {
-            System.err.println("Connection reset: " + e.getMessage());
-            clientChannel.close();
-            key.cancel();
-        }
+            return null;
+        });
     }
 
+    private Response processRequest(Request request, SocketChannel clientChannel) {
+        Response response;
+        String login = request.getLogin();
+        String password = request.getPassword();
 
+        if (users.containsKey(login)) {
+            if (users.get(login).equals(clientChannel)) {
+                try {
+                    response = new Response(null, commandManager.doCommand(request, collectionManager));
+                } catch (Exception e) {
+                    response = new Response("Command execution error: " + e.getMessage(), null);
+                }
+            } else {
+                response = new Response("Something went wrong", null);
+            }
+        } else if (request.getCommandName().equals("login")) {
+            if (DataBaseManager.checkUser(login, password)){
+                response = new Response("You are log in!", null);
+                users.put(login, clientChannel);
+            } else {
+                response = new Response("You are not log in.", null);
+            }
+        } else if (request.getCommandName().equals("register")){
+            if (DataBaseManager.insertUser(login, password)){
+                response = new Response("You are log in", null);
+                users.put(login, clientChannel);
+            } else {
+                response = new Response("Something went wrong", null);
+            }
+        } else {
+            response = new Response("Please, log in", null);
+        }
+
+        return response;
+    }
 
     private void sendResponse(SocketChannel clientChannel, Response response) throws IOException {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();

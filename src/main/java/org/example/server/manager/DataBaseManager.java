@@ -15,9 +15,9 @@ import org.slf4j.LoggerFactory;
 
 
 public class DataBaseManager {
-    private static final String URL = "jdbc:postgresql://localhost:5432/postgres";
-    private static final String username = "postgres";
-    private static final String password = "kdseum";
+    private static final String URL = "jdbc:postgresql://pg:5432/studs";
+    private static final String username = "s465729";
+    private static final String password = "TMnULcCn63BZLOCt";
 
     private static Connection connection;
     private static DataBaseManager instance;
@@ -42,7 +42,6 @@ public class DataBaseManager {
             instance = new DataBaseManager();
         }
         return instance;
-        // DriverManager(JDBC(библиотека
     }
     public static void connectToDataBase() {
         try {
