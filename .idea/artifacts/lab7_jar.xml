@@ -3,11 +3,12 @@
     <output-path>$PROJECT_DIR$/out/artifacts/lab7_jar</output-path>
     <root id="archive" name="lab7.jar">
       <element id="module-output" name="lab7" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/postgresql/postgresql/42.7.3/postgresql-42.7.3.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/ch/qos/logback/logback-classic/1.5.13/logback-classic-1.5.13.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/postgresql/postgresql/42.7.3/postgresql-42.7.3.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/checkerframework/checker-qual/3.42.0/checker-qual-3.42.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/zaxxer/HikariCP/5.1.0/HikariCP-5.1.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/ch/qos/logback/logback-core/1.5.13/logback-core-1.5.13.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

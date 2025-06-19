@@ -52,6 +52,21 @@ public class CollectionManager {
         }
     }
 
+    public boolean removeById(long id) {
+        synchronized (collection) {
+            Iterator<Ticket> iterator = collection.iterator();
+            while (iterator.hasNext()) {
+                Ticket ticket = iterator.next();
+                if (ticket.getId() == id) {
+                    iterator.remove(); // Используем iterator.remove() для безопасного удаления во время итерации
+                    logger.info("Removed ticket with ID {} from collection.", id);
+                    return true;
+                }
+            }
+            logger.warn("Attempted to remove non-existent ticket with ID {}.", id);
+            return false;
+        }
+    }
     public void remove_lower(Ticket ticket) {
         synchronized (collection) {
             Ticket referenceTicket = TicketInput.generateTicket();
@@ -179,12 +194,30 @@ public class CollectionManager {
         return false;
     }
 
-    public int clear() {
-        synchronized (collection) {
-            int sizeBefore = collection.size();
-            collection.clear();
-            logger.debug("Cleared collection (removed {} elements)", sizeBefore);
-            return sizeBefore;
+    public int clear(String userLogin) {
+        synchronized (collection) { // Синхронизация коллекции
+            int initialSize = collection.size();
+            int userId = DataBaseManager.getUserId(userLogin); // Получаем ID пользователя по его логину
+
+            if (userId == -1) {
+                logger.warn("Attempted to remove tickets for non-existent user login: {}", userLogin);
+                return 0; // Пользователь не найден, удалять нечего
+            }
+
+            // Используем Iterator для безопасного удаления элементов во время итерации
+            Iterator<Ticket> iterator = collection.iterator();
+            int removedCount = 0;
+            while (iterator.hasNext()) {
+                Ticket ticket = iterator.next();
+                // Проверяем, совпадает ли ownerId билета с ID текущего пользователя
+                if (ticket.getOwnerId() == userId) {
+                    iterator.remove(); // Безопасное удаление из LinkedHashSet
+                    removedCount++;
+                    logger.debug("Removed in-memory ticket with ID {} belonging to user ID {}", ticket.getId(), userId);
+                }
+            }
+            logger.info("Removed {} tickets from in-memory collection for user {}.", removedCount, userLogin);
+            return removedCount;
         }
     }
-}
+    }

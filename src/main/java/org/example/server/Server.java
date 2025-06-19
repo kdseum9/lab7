@@ -2,7 +2,6 @@
 package org.example.server;
 
 
-import org.example.client.TicketInput;
 import org.example.server.manager.CollectionManager;
 import org.example.server.manager.CommandManager;
 import org.example.common.Request;
@@ -12,13 +11,10 @@ import org.example.server.manager.DataBaseManager;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 
@@ -26,7 +22,8 @@ public class Server {
 
     private final CollectionManager collectionManager;
     private final CommandManager commandManager;
-    private HashMap<String, SocketChannel> users = new HashMap<>();
+    private final Set<String> authorizedUsers = Collections.synchronizedSet(new HashSet<>());
+
 
     // Пул потоков для чтения запросов
     private final ExecutorService readingPool = Executors.newCachedThreadPool();
@@ -166,39 +163,48 @@ public class Server {
     }
 
     private Response processRequest(Request request, SocketChannel clientChannel) {
-        Response response;
         String login = request.getLogin();
         String password = request.getPassword();
+        String command = request.getCommandName();
 
-        if (users.containsKey(login)) {
-            if (users.get(login).equals(clientChannel)) {
-                try {
-                    response = new Response(null, commandManager.doCommand(request, collectionManager));
-                } catch (Exception e) {
-                    response = new Response("Command execution error: " + e.getMessage(), null);
-                }
+        if ("logout".equalsIgnoreCase(command)) {
+            if (authorizedUsers.remove(login)) {
+                return new Response("Logged out successfully.", null);
             } else {
-                response = new Response("Something went wrong", null);
+                return new Response("You are not logged in.", null);
             }
-        } else if (request.getCommandName().equals("login")) {
-            if (DataBaseManager.checkUser(login, password)){
-                response = new Response("You are log in!", null);
-                users.put(login, clientChannel);
-            } else {
-                response = new Response("You are not log in.", null);
-            }
-        } else if (request.getCommandName().equals("register")){
-            if (DataBaseManager.insertUser(login, password)){
-                response = new Response("You are log in", null);
-                users.put(login, clientChannel);
-            } else {
-                response = new Response("Something went wrong", null);
-            }
-        } else {
-            response = new Response("Please, log in", null);
         }
 
-        return response;
+        if ("login".equalsIgnoreCase(command)) {
+            if (DataBaseManager.checkUser(login, password)) {
+                authorizedUsers.add(login);
+                return new Response("You are logged in!", null);
+            } else {
+                return new Response("Invalid login or password.", null);
+            }
+        }
+
+        if ("register".equalsIgnoreCase(command)) {
+            if (DataBaseManager.insertUser(login, password)) {
+                authorizedUsers.add(login);
+                return new Response("Registration successful! You are logged in.", null);
+            } else {
+                return new Response("Registration failed.", null);
+            }
+        }
+
+        // Проверка авторизации для других команд
+        if (!authorizedUsers.contains(login)) {
+            return new Response("Please, log in first.", null);
+        }
+
+        // Выполнение команды
+        try {
+            Object data = commandManager.doCommand(request, collectionManager);
+            return new Response(null, data);
+        } catch (Exception e) {
+            return new Response("Command execution error: " + e.getMessage(), null);
+        }
     }
 
     private void sendResponse(SocketChannel clientChannel, Response response) throws IOException {

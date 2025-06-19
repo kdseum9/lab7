@@ -59,6 +59,8 @@ public class Ticket implements Comparable<Ticket>, Serializable {
      */
     private Venue venue;
 
+    private int ownerId;
+
     /**
      * Конструктор по умолчанию. Создаёт билет с автоматически сгенерированными значениями id и creationDate.
      */
@@ -319,5 +321,14 @@ public class Ticket implements Comparable<Ticket>, Serializable {
     public int hashCode() {
         return Objects.hash(id, name, coordinates, creationDate, price, discount, type, venue);
     }
+
+    public int getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(int ownerId) {
+        this.ownerId = ownerId;
+    }
+
 
 }

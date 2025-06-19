@@ -1,6 +1,7 @@
 package org.example.common.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Класс, представляющий координаты с ограничением на X и обязательным Y.
@@ -65,5 +66,23 @@ public class Coordinates implements Serializable {
                 "x=" + x +
                 ", y=" + y +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Coordinates that = (Coordinates) o;
+        return Float.compare(that.x, x) == 0 && Objects.equals(y, that.y);
+    }
+
+    /**
+     * Вычисляет хэш-код для объекта Coordinates.
+     * Должен быть согласован с методом equals().
+     * @return хэш-код объекта
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y);
     }
 }

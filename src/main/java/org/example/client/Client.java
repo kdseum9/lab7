@@ -61,10 +61,20 @@ public class Client {
             switch (command.toLowerCase()) {
                 case "login":
                 case "register":
-                    login = scanner.nextLine();
-                    password = scanner.nextLine();
+                    System.out.print("Enter login: ");
+                    login = scanner.nextLine().trim();
+                    System.out.print("Enter password: ");
+                    password = scanner.nextLine().trim();
+
                     request = new Request(command, new String[]{login, password}, null);
                     break;
+
+                case "logout":
+                    login = "";
+                    password = "";
+                    System.out.println("Logged out successfully.");
+                    return true;
+
                 case "add":
                 case "add_if_max":
                 case "remove_greater":
