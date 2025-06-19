@@ -18,13 +18,13 @@ public class DataBaseManager {
     private static final String GET_USERS = "SELECT * FROM lab7_users";
     private static final Logger logger = LoggerFactory.getLogger(DataBaseManager.class);
 
-    private static final String DB_URL = "jdbc:postgresql://pg:5432/studs";
-    private static final String DB_USER = "s465729";
-    private static final String DB_PASSWORD = "TMnULcCn63BZLOCt";
+    //private static final String DB_URL = "jdbc:postgresql://pg:5432/studs";
+    //private static final String DB_USER = "s465729";
+    //private static final String DB_PASSWORD = "TMnULcCn63BZLOCt";
 
-    //private static final String DB_URL = "jdbc:postgresql://localhost:5432/postgres";
-    //private static final String DB_USER = "postgres";
-    //private static final String DB_PASSWORD = "kdseum";
+    private static final String DB_URL = "jdbc:postgresql://localhost:5432/postgres";
+    private static final String DB_USER = "postgres";
+    private static final String DB_PASSWORD = "kdseum";
 
     private static final String INSERT_TICKET = "INSERT INTO ticket (name, coordinates_x, coordinates_y, creation_date, price, discount, tickettype, venuename, capacity, venuetype, owner_id) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
