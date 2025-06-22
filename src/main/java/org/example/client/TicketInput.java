@@ -29,14 +29,14 @@ public class TicketInput {
      */
     public static Ticket generateTicket() {
         logger.info("Generating new ticket...");
-        String name = generateName();
-        Coordinates coordinates = CoordinatesGenerator.generateCoordinates();
-        int price = generatePrice();
-        Double discount = generateDiscount();
-        TicketType type = generateTicketType();
-        Venue venue = VenueGenerator.generateVenue();
-
-        return TicketFactory.createTicket(name, coordinates, price, discount, type, venue);
+        Ticket ticket = new Ticket();
+        ticket.setName(generateName());
+        ticket.setCoordinates(CoordinatesGenerator.generateCoordinates());
+        ticket.setPrice(generatePrice());
+        ticket.setDiscount(generateDiscount());
+        ticket.setType(generateTicketType());
+        ticket.setVenue(VenueGenerator.generateVenue());
+        return ticket;
     }
 
     /**
@@ -148,10 +148,15 @@ public class TicketInput {
         int capacity = Integer.parseInt(reader.readLine().trim());
         VenueType venueType = VenueType.valueOf(reader.readLine().trim());
 
-        Coordinates coordinates = new Coordinates(x, y);
-        Venue venue = new Venue(venueName, capacity, venueType);
+        Ticket ticket = new Ticket();
+        ticket.setName(name);
+        ticket.setCoordinates(new Coordinates(x, y));
+        ticket.setPrice(price);
+        ticket.setDiscount(discount);
+        ticket.setType(type);
+        ticket.setVenue(new Venue(venueName, capacity, venueType));
 
-        return TicketFactory.createTicket(name, coordinates, price, discount, type, venue);
+        return ticket;
     }
 
 

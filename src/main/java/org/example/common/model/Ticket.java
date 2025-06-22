@@ -17,7 +17,7 @@ import java.util.Objects;
  * <p>
  * Используется для хранения информации о билетах и генерации XML-представления.
  */
-public class Ticket implements Comparable<Ticket>, Serializable {
+public class Ticket extends AbstractTicket {
 
     /**
      * Уникальный идентификатор билета. Генерируется автоматически, должен быть > 0.
@@ -260,11 +260,14 @@ public class Ticket implements Comparable<Ticket>, Serializable {
     /**
      * Сравнивает билеты по цене. Null считается меньшим.
      *
-     * @param other другой билет
+     * @param o другой билет
      * @return результат сравнения
      */
     @Override
-    public int compareTo(Ticket other) {
+    public int compareTo(AbstractTicket o) {
+        if (!(o instanceof Ticket)) return 0;
+        Ticket other = (Ticket) o;
+
         if (this.price < 0 && other.price < 0) return 0;
         if (this.price < 0) return -1;
         if (other.price < 0) return 1;
