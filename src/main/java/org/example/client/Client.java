@@ -1,5 +1,6 @@
 package org.example.client;
 
+import org.example.common.Factory.TicketFactory;
 import org.example.common.Request;
 import org.example.common.Response;
 
@@ -16,6 +17,8 @@ public class Client {
     private static int SERVER_PORT;
     private static String login = "";
     private static String password = "";
+    private static TicketFactory ticketFactory = new TicketFactory();
+
 
     public static void main(String[] args) throws InterruptedException {
         Scanner scanner = new Scanner(System.in);
@@ -79,12 +82,14 @@ public class Client {
                 case "add_if_max":
                 case "remove_greater":
                 case "remove_lower":
-                    request = new Request(command, new String[0], TicketInput.generateTicket());
+                    request = new Request(command, new String[0], ticketFactory.createTicket()
+                    );
                     break;
                 case "update":
                     System.out.print("Enter ID of the ticket to update: ");
                     long id = Long.parseLong(scanner.nextLine());
-                    request = new Request(command, new String[]{String.valueOf(id)}, TicketInput.generateTicket());
+                    request = new Request(command, new String[]{String.valueOf(id)}, ticketFactory.createTicket()
+                    );
                     break;
 
                 case "remove_by_id":

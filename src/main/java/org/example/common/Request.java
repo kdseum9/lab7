@@ -1,5 +1,6 @@
 package org.example.common;
 
+import org.example.common.model.AbstractTicket;
 import org.example.common.model.Ticket;
 
 import java.io.Serializable;
@@ -44,7 +45,7 @@ public class Request implements Serializable {
      * @param args массив аргументов
      * @param ticket объект {@link Ticket}, связанный с командой (может быть {@code null})
      */
-    public Request(String commandName, String[] args, Ticket ticket) {
+    public Request(String commandName, String[] args, AbstractTicket ticket) {
         this.commandName = commandName;
         this.args = args;
         this.ticket = ticket;

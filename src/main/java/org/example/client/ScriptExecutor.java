@@ -1,7 +1,10 @@
 package org.example.client;
 
+import org.example.common.Factory.Factory;
+import org.example.common.Factory.ScriptTicketFactory;
 import org.example.common.Request;
 import org.example.common.Response;
+import org.example.common.model.AbstractTicket;
 import org.example.common.model.Ticket;
 
 import java.io.BufferedReader;
@@ -20,6 +23,7 @@ public class ScriptExecutor {
      * Множество путей к уже выполненным скриптам, чтобы предотвратить рекурсию.
      */
     private final Stack<String> executedScripts = new Stack<>();
+
 
     /**
      * Конструктор по умолчанию.
@@ -43,6 +47,7 @@ public class ScriptExecutor {
         executedScripts.push(filePath);
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            Factory factory = new ScriptTicketFactory(reader);
             String line;
 
             while ((line = reader.readLine()) != null) {
@@ -57,14 +62,14 @@ public class ScriptExecutor {
                 switch (command) {
                     case "add":
                     case "add_if_max":
-                        Ticket ticket = TicketInput.generateTicketFromScript(reader);
+                        AbstractTicket ticket = factory.createTicket();
                         request = new Request(command, new String[0], ticket);
                         break;
 
                     case "update":
                         String idLine = reader.readLine();
                         long id = Long.parseLong(idLine.trim());
-                        Ticket updatedTicket = TicketInput.generateTicketFromScript(reader);
+                        Ticket updatedTicket = (Ticket) factory.createTicket();
                         request = new Request(command, new String[]{String.valueOf(id)}, updatedTicket);
                         break;
 
@@ -75,7 +80,7 @@ public class ScriptExecutor {
 
                     case "remove_greater":
                     case "remove_lower":
-                        Ticket compareTicket = TicketInput.generateTicketFromScript(reader);
+                        Ticket compareTicket = (Ticket) factory.createTicket();
                         request = new Request(command, new String[0], compareTicket);
                         break;
 
@@ -98,6 +103,8 @@ public class ScriptExecutor {
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("Error executing script: " + e.getMessage());
         } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
             if (!executedScripts.isEmpty() && executedScripts.peek().equals(filePath)) {
