@@ -162,7 +162,7 @@ public class Server {
         });
     }
 
-    private Response processRequest(Request request, SocketChannel clientChannel) {
+    Response processRequest(Request request, SocketChannel clientChannel) {
         String login = request.getLogin();
         String password = request.getPassword();
         String command = request.getCommandName();
@@ -194,14 +194,13 @@ public class Server {
         }
 
         // Проверка авторизации для других команд
-        if (!authorizedUsers.contains(login)) {
+        if (!authorizedUsers.contains(login) || !DataBaseManager.checkUser(login, password)) {
             return new Response("Please, log in first.", null);
         }
 
         // Выполнение команды
         try {
-            Object data = commandManager.doCommand(request, collectionManager);
-            return new Response(null, data);
+            return commandManager.doCommand(request, collectionManager);
         } catch (Exception e) {
             return new Response("Command execution error: " + e.getMessage(), null);
         }

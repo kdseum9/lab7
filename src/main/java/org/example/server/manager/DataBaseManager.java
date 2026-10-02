@@ -227,12 +227,15 @@ public class DataBaseManager {
         ticket.setCoordinates(new Coordinates(rs.getFloat("coordinates_x"), rs.getLong("coordinates_y")));
         ticket.setCreationDate(rs.getTimestamp("creation_date").toInstant().atZone(ZoneId.systemDefault()));
         ticket.setPrice(rs.getInt("price"));
-        ticket.setDiscount(rs.getDouble("discount"));
+        double discount = rs.getDouble("discount");
+        ticket.setDiscount(rs.wasNull() ? null : discount);
         ticket.setType(TicketType.valueOf(rs.getString("tickettype")));
-        Venue venue = new Venue();
-        venue.setName(rs.getString("venuename"));
-        venue.setCapacity(rs.getInt("capacity"));
-        venue.setType(VenueType.valueOf(rs.getString("venuetype")));
+        String venueType = rs.getString("venuetype");
+        Venue venue = new Venue(
+                rs.getLong("venueid"),
+                rs.getString("venuename"),
+                rs.getInt("capacity"),
+                venueType == null ? null : VenueType.valueOf(venueType));
         ticket.setVenue(venue);
         ticket.setOwnerId(rs.getInt("owner_id"));
         return ticket;

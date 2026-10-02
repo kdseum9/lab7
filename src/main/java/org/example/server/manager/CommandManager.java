@@ -32,6 +32,7 @@ public class CommandManager {
         commands.put("filter_starts_with", new FilterCommand());
         commands.put("print_field_descending_discount", new PrintFieldDescendingDiscountCommand());
         commands.put("exit", new ExitCommand());
+        commands.put("export_my_tickets", new ExportMyTicketsCommand());
 
 
     }
