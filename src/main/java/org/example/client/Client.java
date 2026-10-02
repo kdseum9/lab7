@@ -92,6 +92,14 @@ public class Client {
                     );
                     break;
 
+                case "rename_ticket":
+                    System.out.print("Enter ID of the ticket to rename: ");
+                    String renameId = scanner.hasNextLine() ? scanner.nextLine() : null;
+                    System.out.print("Enter new ticket name: ");
+                    String renameName = scanner.hasNextLine() ? scanner.nextLine() : null;
+                    request = new Request("rename_ticket", new String[]{renameId, renameName}, null);
+                    break;
+
                 case "remove_by_id":
                     System.out.print("Enter ID of the ticket to remove: ");
                     String removeIdStr = scanner.nextLine();

@@ -132,6 +132,13 @@ public class CollectionManager {
         }
     }
 
+    /** Executes a collection mutation under the same lock as add/remove. */
+    public <T> T withLockedCollection(java.util.function.Function<LinkedHashSet<Ticket>, T> action) {
+        synchronized (collection) {
+            return action.apply(collection);
+        }
+    }
+
     public Ticket getById(long id) {
 
         Ticket found = collection.stream()

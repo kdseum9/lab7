@@ -48,7 +48,7 @@ public class Request implements Serializable {
     public Request(String commandName, String[] args, AbstractTicket ticket) {
         this.commandName = commandName;
         this.args = args;
-        this.ticket = ticket;
+        this.ticket = (Ticket) ticket;
     }
 
     /**
@@ -63,7 +63,7 @@ public class Request implements Serializable {
     public Request(String commandName, String[] args, Ticket ticket, String login, String password) {
         this.commandName = commandName;
         this.args = args;
-        this.ticket = ticket;
+        this.ticket = (Ticket) ticket;
         this.login = login;
         this.password = password;
     }
@@ -101,7 +101,7 @@ public class Request implements Serializable {
      * @param ticket новый объект {@link Ticket}
      */
     public void setTicket(Ticket ticket) {
-        this.ticket = ticket;
+        this.ticket = (Ticket) ticket;
     }
 
     /**
