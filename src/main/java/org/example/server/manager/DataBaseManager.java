@@ -289,6 +289,18 @@ public class DataBaseManager {
         }
     }
 
+    public static boolean renameTicketById(long id, String name, String login) throws SQLException {
+        String sql = "UPDATE ticket SET name = ? WHERE id = ? AND owner_id = "
+                + "(SELECT user_id FROM lab7_users WHERE login = ?)";
+        try (Connection connection = createConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, name);
+            statement.setLong(2, id);
+            statement.setString(3, login);
+            return statement.executeUpdate() == 1;
+        }
+    }
+
     public static boolean removeTicketByName(String login, String key) {
         int userId = getUserId(login);
         int ownerId = getOwnerId(key);

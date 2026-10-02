@@ -4,12 +4,14 @@ import org.example.common.Factory.Factory;
 import org.example.common.Factory.ScriptTicketFactory;
 import org.example.common.Request;
 import org.example.common.Response;
+import org.example.common.RenameTicketArguments;
 import org.example.common.model.AbstractTicket;
 import org.example.common.model.Ticket;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.channels.SocketChannel;
 import java.util.Stack;
 
@@ -46,7 +48,7 @@ public class ScriptExecutor {
 
         executedScripts.push(filePath);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath, StandardCharsets.UTF_8))) {
             Factory factory = new ScriptTicketFactory(reader);
             String line;
 
@@ -71,6 +73,19 @@ public class ScriptExecutor {
                         long id = Long.parseLong(idLine.trim());
                         Ticket updatedTicket = (Ticket) factory.createTicket();
                         request = new Request(command, new String[]{String.valueOf(id)}, updatedTicket);
+                        break;
+
+                    case "rename_ticket":
+                        String renameId = reader.readLine();
+                        String renameName = reader.readLine();
+                        try {
+                            RenameTicketArguments rename = RenameTicketArguments.parse(renameId, renameName);
+                            request = new Request(command,
+                                    new String[]{Long.toString(rename.id()), rename.name()}, null);
+                        } catch (IllegalArgumentException e) {
+                            System.err.println(e.getMessage());
+                            continue;
+                        }
                         break;
 
                     case "remove_by_id":
