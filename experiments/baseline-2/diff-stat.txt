@@ -1,0 +1,10 @@
+ src/main/java/org/example/client/Client.java       |   8 ++
+ .../java/org/example/client/ScriptExecutor.java    |   8 +-
+ src/main/java/org/example/server/Server.java       |   3 +-
+ .../org/example/server/command/HelpCommand.java    |   1 +
+ .../server/command/RenameTicketCommand.java        |  91 ++++++++++++
+ .../example/server/manager/CollectionManager.java  |   7 +
+ .../org/example/server/manager/CommandManager.java |   1 +
+ .../example/server/manager/DataBaseManager.java    |  11 ++
+ .../server/command/RenameTicketCommandTest.java    | 153 +++++++++++++++++++++
+ 9 files changed, 280 insertions(+), 3 deletions(-)

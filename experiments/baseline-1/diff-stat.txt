@@ -1,0 +1,13 @@
+ src/main/java/org/example/client/Client.java       |  11 ++
+ .../java/org/example/client/ScriptExecutor.java    |  17 ++-
+ .../org/example/common/RenameTicketArguments.java  |  43 ++++++
+ src/main/java/org/example/server/Server.java       |   7 +-
+ .../org/example/server/command/HelpCommand.java    |   1 +
+ .../server/command/RenameTicketCommand.java        |  35 +++++
+ .../example/server/manager/CollectionManager.java  |  34 +++++
+ .../org/example/server/manager/CommandManager.java |   1 +
+ .../example/server/manager/DataBaseManager.java    |  12 ++
+ .../org/example/client/RenameTicketInputTest.java  |  90 +++++++++++
+ .../server/command/RenameTicketCommandTest.java    | 167 +++++++++++++++++++++
+ .../manager/RenameTicketPersistenceTest.java       |  81 ++++++++++
+ 12 files changed, 496 insertions(+), 3 deletions(-)
