@@ -98,6 +98,14 @@ public class Client {
                     request = new Request(command, new String[]{removeIdStr}, null);
                     break;
 
+                case "rename_ticket":
+                    System.out.print("Введите ID билета: ");
+                    String renameId = scanner.hasNextLine() ? scanner.nextLine() : null;
+                    System.out.print("Введите новое название: ");
+                    String renameName = scanner.hasNextLine() ? scanner.nextLine() : null;
+                    request = new Request("rename_ticket", new String[]{renameId, renameName}, null);
+                    break;
+
                 case "filter_starts_with":
                     System.out.print("Enter name prefix to filter: ");
                     String prefix = scanner.nextLine();

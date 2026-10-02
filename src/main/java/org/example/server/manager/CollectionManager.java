@@ -24,6 +24,21 @@ public class CollectionManager {
     public CollectionManager() {
     }
 
+    public boolean renameTicket(long id, int ownerId, String name)
+            throws org.example.common.exceptions.NoElementException {
+        synchronized (collection) {
+            Ticket ticket = collection.stream().filter(t -> t.getId() == id).findFirst().orElse(null);
+            if (ticket == null) throw new org.example.common.exceptions.NoElementException(id);
+            if (ticket.getOwnerId() != ownerId) throw new SecurityException("Нельзя переименовать чужой билет.");
+            if (!DataBaseManager.renameTicket(id, ownerId, name)) return false;
+            // Remove before changing a field used by Ticket.hashCode().
+            collection.remove(ticket);
+            ticket.setName(name);
+            collection.add(ticket);
+            return true;
+        }
+    }
+
     public void add(Ticket ticket) {
 
         synchronized (collection) {

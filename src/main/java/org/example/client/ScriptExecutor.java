@@ -60,6 +60,11 @@ public class ScriptExecutor {
                 Request request = null;
 
                 switch (command) {
+                    case "rename_ticket":
+                        String renameId = reader.readLine();
+                        String renameName = reader.readLine();
+                        request = new Request(command, new String[]{renameId, renameName}, null);
+                        break;
                     case "add":
                     case "add_if_max":
                         AbstractTicket ticket = factory.createTicket();

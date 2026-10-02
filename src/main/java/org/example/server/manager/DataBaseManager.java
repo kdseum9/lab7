@@ -39,6 +39,20 @@ public class DataBaseManager {
     public DataBaseManager() {
     }
 
+    public static boolean renameTicket(long id, int ownerId, String name) {
+        try (Connection connection = createConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "UPDATE ticket SET name = ? WHERE id = ? AND owner_id = ?")) {
+            statement.setString(1, name);
+            statement.setLong(2, id);
+            statement.setInt(3, ownerId);
+            return statement.executeUpdate() == 1;
+        } catch (SQLException e) {
+            logger.error("Couldn't rename ticket {}: {}", id, e.getMessage());
+            return false;
+        }
+    }
+
     public static DataBaseManager getInstance() {
         if (instance == null) {
             instance = new DataBaseManager();

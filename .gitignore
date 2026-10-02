@@ -35,4 +35,9 @@ build/
 .vscode/
 
 ### Mac OS ###
-.DS_Store
+.DS_Storecheck.py
+check.py
+b1.txt
+b2.txt
+bc.txt
+report_*.json
