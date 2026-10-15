@@ -26,8 +26,25 @@ public class UpdateCommand extends AbstractCommand {
             return new Response("ERROR: Ticket data missing", null);
         }
 
+        String[] args = request.getArgs();
+        if (args == null || args.length == 0) {
+            return new Response("ERROR: Ticket ID missing", null);
+        }
+
+        long ticketId;
         try {
-            if (!DataBaseManager.updateTicketById((int) ticket.getId(), ticket, request.getLogin())) {
+            ticketId = Long.parseLong(args[0]);
+            if (ticketId <= 0 || ticketId > Integer.MAX_VALUE) {
+                throw new NumberFormatException("ID is outside the supported range");
+            }
+        } catch (NumberFormatException e) {
+            return new Response("ERROR: Invalid ticket ID", null);
+        }
+
+        ticket.setId(ticketId);
+
+        try {
+            if (!DataBaseManager.updateTicketById((int) ticketId, ticket, request.getLogin())) {
                 return new Response("ERROR: Ticket not found or access denied", null);
             }
             collectionManager.update(ticket);

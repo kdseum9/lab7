@@ -35,9 +35,44 @@ public class CollectionManager {
     public void update(Ticket ticket) {
 
         synchronized (collection) {
-            collection.remove(ticket);
+            collection.removeIf(currentTicket -> currentTicket.getId() == ticket.getId());
             collection.add(ticket);
             logger.info("Updated ticket: {}", ticket);
+        }
+    }
+
+    /**
+     * Changes only the name of the ticket with the supplied ID.
+     *
+     * <p>The ticket is removed before it is mutated because {@link Ticket#hashCode()}
+     * includes its name and the collection is hash based.</p>
+     *
+     * @param id ticket ID
+     * @param newName validated new name
+     * @return the renamed ticket, or {@code null} when the ID is absent
+     */
+    public Ticket renameTicket(long id, String newName) {
+        synchronized (collection) {
+            Ticket ticketToRename = null;
+            Iterator<Ticket> iterator = collection.iterator();
+            while (iterator.hasNext()) {
+                Ticket ticket = iterator.next();
+                if (ticket.getId() == id) {
+                    iterator.remove();
+                    ticketToRename = ticket;
+                    break;
+                }
+            }
+
+            if (ticketToRename == null) {
+                logger.warn("Attempted to rename non-existent ticket with ID {}.", id);
+                return null;
+            }
+
+            ticketToRename.setName(newName);
+            collection.add(ticketToRename);
+            logger.info("Renamed ticket with ID {}.", id);
+            return ticketToRename;
         }
     }
 
