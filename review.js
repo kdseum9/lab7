@@ -116,7 +116,9 @@ async function main() {
         },
         body: JSON.stringify({
           model: MODEL,
-          max_tokens: 4500,
+          max_tokens: 16000,
+          temperature: 0,
+          reasoning: { effort: 'low' },
           messages: [
             {
               role: 'system',
@@ -144,6 +146,7 @@ async function main() {
     if (typeof answer !== 'string' ||
         !answer.trim() ||
         data.choices?.[0]?.finish_reason === 'length') {
+      console.error('API body:', JSON.stringify(data).slice(0, 500));      
       throw new Error('Invalid API response');
     }
 
