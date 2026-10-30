@@ -135,7 +135,7 @@ async function main() {
     );
 
     if (!response.ok) {
-      throw new Error('API request failed');
+      throw new Error(`OpenRouter HTTP ${response.status}`);
     }
 
     const data = await response.json();
@@ -157,7 +157,7 @@ async function main() {
     process.stdout.write(formatReview(review));
 
   } catch (error) {
-    console.error('Review error:', error.name);
+    console.error('Review error:', error.name, error.message);
     printResult('Не удалось выполнить ревью. Проверьте PR вручную.');
   }
 }
