@@ -1,7 +1,7 @@
 
 const fs = require('fs');
 
-const MODEL = 'cohere/north-mini-code:free';
+const MODEL = 'openai/gpt-4o-mini';
 const MAX_LINES = 600;
 const MAX_BYTES = 120000;
 
@@ -132,7 +132,7 @@ async function main() {
             }
           ]
         }),
-        signal: AbortSignal.timeout(120000)
+        signal: AbortSignal.timeout(300000)
       }
     );
 
