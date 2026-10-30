@@ -2,6 +2,8 @@ package org.example.server.manager;
 
 import java.sql.*;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.example.common.model.Coordinates;
 import org.example.common.model.Ticket;
@@ -60,7 +62,64 @@ public class DataBaseManager {
             System.exit(-1);
         }
     }
+    public static List<Long> findTicketsByName(String name) throws SQLException {
+        Connection conn = createConnection();
+        Statement st = conn.createStatement();
+        ResultSet rs = st.executeQuery("SELECT id FROM ticket WHERE name = '" + name + "'");
+        List<Long> ids = new ArrayList<>();
+        while (rs.next()) {
+            ids.add(rs.getLong("id"));
+        }
+        return ids;
+    }
 
+    public static boolean deleteTicket(long ticketId) throws SQLException {
+        String sql = "DELETE FROM ticket WHERE id = ?";
+        try (Connection conn = createConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, ticketId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    public static List<Long> findTicketIdsByOwner(String login) throws SQLException {
+        String sql = "SELECT t.id FROM ticket t JOIN lab7_users u ON t.owner_id = u.user_id WHERE u.login = ?";
+        List<Long> ids = new ArrayList<>();
+        try (Connection conn = createConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, login);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ids.add(rs.getLong("id"));
+                }
+            }
+        }
+        return ids;
+    }
+
+    public static List<Long> listTicketIdsSorted(String sortField) throws SQLException {
+        String column;
+        switch (sortField) {
+            case "price":
+                column = "price";
+                break;
+            case "name":
+                column = "name";
+                break;
+            default:
+                column = "id";
+        }
+        String sql = "SELECT id FROM ticket ORDER BY " + column;
+        List<Long> ids = new ArrayList<>();
+        try (Connection conn = createConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                ids.add(rs.getLong("id"));
+            }
+        }
+        return ids;
+    }
     private static void checkAndCreateTables(Connection connection) throws SQLException {
         try (Statement stmt = connection.createStatement()) {
 
