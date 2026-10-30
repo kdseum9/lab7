@@ -1,7 +1,7 @@
 
 const fs = require('fs');
 
-const MODEL = 'openai/gpt-oss-20b:free';
+const MODEL = 'cohere/north-mini-code:free';
 const MAX_LINES = 600;
 const MAX_BYTES = 120000;
 
