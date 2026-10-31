@@ -73,6 +73,15 @@ public class ScriptExecutor {
                         request = new Request(command, new String[]{String.valueOf(id)}, updatedTicket);
                         break;
 
+                    case "rename_ticket":
+                        String renameId = reader.readLine();
+                        String newName = reader.readLine();
+                        if (renameId == null || newName == null) {
+                            throw new IOException("rename_ticket requires an ID and a new name");
+                        }
+                        request = new Request(command, new String[]{renameId.trim(), newName}, null);
+                        break;
+
                     case "remove_by_id":
                         String removeId = reader.readLine().trim();
                         request = new Request(command, new String[]{removeId}, null);
