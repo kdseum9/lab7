@@ -35,6 +35,16 @@ public class DataBaseManager {
     private static final String UPDATE_TICKET_BY_ID = "UPDATE ticket SET " +
             "name = ?, coordinates_x = ?, coordinates_y = ?, creation_date = ?, price = ?," +
             " discount = ?, tickettype = ?, venuename = ?, capacity = ?, venuetype = ?, owner_id = ? WHERE id = ? AND owner_id=?";
+    private static final String FIND_TICKET_OWNER_FOR_UPDATE = "SELECT owner_id FROM ticket WHERE id = ? FOR UPDATE";
+    private static final String FIND_USER_ID = "SELECT user_id FROM lab7_users WHERE login = ?";
+    private static final String RENAME_TICKET = "UPDATE ticket SET name = ? WHERE id = ? AND owner_id = ?";
+
+    public enum RenameTicketResult {
+        SUCCESS,
+        NOT_FOUND,
+        ACCESS_DENIED,
+        DATABASE_ERROR
+    }
 
     public DataBaseManager() {
     }
@@ -286,6 +296,70 @@ public class DataBaseManager {
                 logger.error("Database error while updating ticket {}: {}", id, e.getMessage());
                 return false;
             }
+        }
+    }
+
+    /**
+     * Renames a ticket owned by the supplied user without updating any other column.
+     */
+    public static RenameTicketResult renameTicket(long id, String newName, String login) {
+        if (login == null || login.isBlank()) {
+            return RenameTicketResult.ACCESS_DENIED;
+        }
+
+        try (Connection connection = createConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                Integer ownerId = null;
+                try (PreparedStatement statement = connection.prepareStatement(FIND_TICKET_OWNER_FOR_UPDATE)) {
+                    statement.setLong(1, id);
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        if (resultSet.next()) {
+                            ownerId = resultSet.getInt("owner_id");
+                        }
+                    }
+                }
+
+                if (ownerId == null) {
+                    connection.rollback();
+                    return RenameTicketResult.NOT_FOUND;
+                }
+
+                Integer userId = null;
+                try (PreparedStatement statement = connection.prepareStatement(FIND_USER_ID)) {
+                    statement.setString(1, login);
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        if (resultSet.next()) {
+                            userId = resultSet.getInt("user_id");
+                        }
+                    }
+                }
+
+                if (userId == null || !ownerId.equals(userId)) {
+                    connection.rollback();
+                    return RenameTicketResult.ACCESS_DENIED;
+                }
+
+                try (PreparedStatement statement = connection.prepareStatement(RENAME_TICKET)) {
+                    statement.setString(1, newName);
+                    statement.setLong(2, id);
+                    statement.setInt(3, userId);
+                    if (statement.executeUpdate() != 1) {
+                        connection.rollback();
+                        return RenameTicketResult.DATABASE_ERROR;
+                    }
+                }
+
+                connection.commit();
+                logger.info("Ticket {} renamed successfully by user {}", id, login);
+                return RenameTicketResult.SUCCESS;
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            logger.error("Database error while renaming ticket {}: {}", id, e.getMessage());
+            return RenameTicketResult.DATABASE_ERROR;
         }
     }
 

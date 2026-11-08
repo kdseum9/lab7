@@ -26,6 +26,7 @@ public class HelpCommand extends AbstractCommand {
                         "show : вывести все элементы коллекции\n" +
                         "add {element} : добавить новый элемент\n" +
                         "update id {element} : обновить элемент по id\n" +
+                        "rename_ticket : изменить название принадлежащего вам билета по id\n" +
                         "remove_by_id id : удалить элемент по id\n" +
                         "clear : очистить коллекцию\n" +
                         "save : сохранить коллекцию в файл\n" +
