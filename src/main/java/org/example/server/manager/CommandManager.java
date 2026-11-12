@@ -25,6 +25,7 @@ public class CommandManager {
         commands.put("print_descending", new PrintDescendingCommand());
         commands.put("help", new HelpCommand());
         commands.put("update", new UpdateCommand());
+        commands.put("rename_ticket", new RenameTicketCommand());
         commands.put("remove_by_id", new RemoveByIdCommand());
         commands.put("clear", new ClearCommand());
         commands.put("add_if_max", new AddIfMaxCommand());

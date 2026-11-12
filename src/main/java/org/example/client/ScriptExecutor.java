@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.Stack;
 
 /**
@@ -46,7 +47,7 @@ public class ScriptExecutor {
 
         executedScripts.push(filePath);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath, StandardCharsets.UTF_8))) {
             Factory factory = new ScriptTicketFactory(reader);
             String line;
 
@@ -71,6 +72,11 @@ public class ScriptExecutor {
                         long id = Long.parseLong(idLine.trim());
                         Ticket updatedTicket = (Ticket) factory.createTicket();
                         request = new Request(command, new String[]{String.valueOf(id)}, updatedTicket);
+                        break;
+
+                    case "rename_ticket":
+                        request = new Request(command,
+                                new String[]{reader.readLine(), reader.readLine()}, null);
                         break;
 
                     case "remove_by_id":
