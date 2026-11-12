@@ -13,6 +13,13 @@ import java.util.LinkedHashSet;
 
 public class CollectionManager {
 
+    @FunctionalInterface
+    public interface TicketNameStore {
+        boolean rename(long id, String name, String login) throws java.sql.SQLException;
+    }
+
+    private final TicketNameStore ticketNameStore;
+
     private final LocalDateTime timeOfInitial = LocalDateTime.now();
 
     private LinkedHashSet<Ticket> collection = new LinkedHashSet<>();
@@ -22,6 +29,11 @@ public class CollectionManager {
 
 
     public CollectionManager() {
+        this(DataBaseManager::renameTicketById);
+    }
+
+    public CollectionManager(TicketNameStore ticketNameStore) {
+        this.ticketNameStore = java.util.Objects.requireNonNull(ticketNameStore);
     }
 
     public void add(Ticket ticket) {
@@ -38,6 +50,28 @@ public class CollectionManager {
             collection.remove(ticket);
             collection.add(ticket);
             logger.info("Updated ticket: {}", ticket);
+        }
+    }
+
+    public boolean renameTicket(long id, String name, String login) throws java.sql.SQLException {
+        synchronized (collection) {
+            if (!ticketNameStore.rename(id, name, login)) {
+                return false;
+            }
+            // Name participates in hashCode: remove before changing it, then rebuild
+            // the set in the same order so existing entries remain searchable.
+            LinkedHashSet<Ticket> renamed = new LinkedHashSet<>();
+            Iterator<Ticket> iterator = collection.iterator();
+            while (iterator.hasNext()) {
+                Ticket ticket = iterator.next();
+                iterator.remove();
+                if (ticket.getId() == id) {
+                    ticket.setName(name);
+                }
+                renamed.add(ticket);
+            }
+            collection.addAll(renamed);
+            return true;
         }
     }
 

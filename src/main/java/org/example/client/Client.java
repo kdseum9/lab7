@@ -3,6 +3,7 @@ package org.example.client;
 import org.example.common.Factory.TicketFactory;
 import org.example.common.Request;
 import org.example.common.Response;
+import org.example.common.RenameTicketArguments;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -90,6 +91,16 @@ public class Client {
                     long id = Long.parseLong(scanner.nextLine());
                     request = new Request(command, new String[]{String.valueOf(id)}, ticketFactory.createTicket()
                     );
+                    break;
+
+                case "rename_ticket":
+                    System.out.print("Enter ID of the ticket to rename: ");
+                    String renameId = scanner.hasNextLine() ? scanner.nextLine() : null;
+                    System.out.print("Enter new ticket name: ");
+                    String renameName = scanner.hasNextLine() ? scanner.nextLine() : null;
+                    RenameTicketArguments rename = RenameTicketArguments.parse(renameId, renameName);
+                    request = new Request("rename_ticket",
+                            new String[]{Long.toString(rename.id()), rename.name()}, null);
                     break;
 
                 case "remove_by_id":

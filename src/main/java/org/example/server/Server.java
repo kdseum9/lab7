@@ -198,10 +198,13 @@ public class Server {
             return new Response("Please, log in first.", null);
         }
 
+        if ("rename_ticket".equals(command) && !DataBaseManager.checkUser(login, password)) {
+            return new Response("Invalid login or password.", null);
+        }
+
         // Выполнение команды
         try {
-            Object data = commandManager.doCommand(request, collectionManager);
-            return new Response(null, data);
+            return commandManager.doCommand(request, collectionManager);
         } catch (Exception e) {
             return new Response("Command execution error: " + e.getMessage(), null);
         }
