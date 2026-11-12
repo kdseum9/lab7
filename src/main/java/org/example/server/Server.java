@@ -200,8 +200,7 @@ public class Server {
 
         // Выполнение команды
         try {
-            Object data = commandManager.doCommand(request, collectionManager);
-            return new Response(null, data);
+            return commandManager.doCommand(request, collectionManager);
         } catch (Exception e) {
             return new Response("Command execution error: " + e.getMessage(), null);
         }

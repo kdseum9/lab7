@@ -17,6 +17,22 @@ import java.time.ZonedDateTime;
  */
 public class TicketValidator {
 
+    public static long positiveId(String value) throws WrongArgumentException {
+        try {
+            long id = Long.parseLong(value == null ? "" : value.strip());
+            if (id > 0) return id;
+        } catch (NumberFormatException ignored) {
+        }
+        throw new WrongArgumentException("ID должен быть положительным целым числом в пределах long.");
+    }
+
+    public static String normalizedName(String value) throws WrongArgumentException {
+        if (value == null) throw new WrongArgumentException("Название отсутствует.");
+        String name = value.replaceAll("(?U)^\\s+|\\s+$", "");
+        inputIsNotEmpty(name, "Название");
+        return name;
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(TicketValidator.class);
 
 
