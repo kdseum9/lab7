@@ -1,0 +1,9 @@
+M	src/main/java/org/example/client/Client.java
+M	src/main/java/org/example/client/ScriptExecutor.java
+M	src/main/java/org/example/server/Server.java
+M	src/main/java/org/example/server/command/HelpCommand.java
+A	src/main/java/org/example/server/command/RenameTicketCommand.java
+M	src/main/java/org/example/server/manager/CollectionManager.java
+M	src/main/java/org/example/server/manager/CommandManager.java
+M	src/main/java/org/example/server/manager/DataBaseManager.java
+A	src/test/java/org/example/server/command/RenameTicketCommandTest.java
