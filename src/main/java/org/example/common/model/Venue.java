@@ -118,6 +118,6 @@ public class Venue implements Serializable {
     }
 
     public void setName(String venueName) {
-
+        this.venueName = venueName;
     }
 }

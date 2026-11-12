@@ -48,7 +48,7 @@ public class Request implements Serializable {
     public Request(String commandName, String[] args, AbstractTicket ticket) {
         this.commandName = commandName;
         this.args = args;
-        this.ticket = ticket;
+        this.ticket = ticket == null ? null : (Ticket) ticket;
     }
 
     /**

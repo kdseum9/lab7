@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Comparator;
+import java.util.List;
 
 
 public class CollectionManager {
@@ -129,6 +131,16 @@ public class CollectionManager {
     public LinkedHashSet<Ticket> getCollection() {
         synchronized (collection) {
             return new LinkedHashSet<>(collection); // Возвращаем копию для безопасности
+        }
+    }
+
+    /** Returns a read-only, ID-sorted snapshot of tickets belonging to one owner. */
+    public List<Ticket> getTicketsByOwnerId(int ownerId) {
+        synchronized (collection) {
+            return collection.stream()
+                    .filter(ticket -> ticket.getOwnerId() == ownerId)
+                    .sorted(Comparator.comparingLong(Ticket::getId))
+                    .toList();
         }
     }
 

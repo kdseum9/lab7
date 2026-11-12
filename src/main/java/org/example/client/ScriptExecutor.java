@@ -58,6 +58,7 @@ public class ScriptExecutor {
                 System.out.println("Executing command from script: " + command);
 
                 Request request = null;
+                String exportPath = null;
 
                 switch (command) {
                     case "add":
@@ -85,9 +86,23 @@ public class ScriptExecutor {
                         break;
 
                     case "execute_script":
-                        String nestedPath = reader.readLine().trim();
+                        String nestedPathLine = reader.readLine();
+                        if (nestedPathLine == null) {
+                            System.err.println("Script error: missing path after execute_script.");
+                            continue;
+                        }
+                        String nestedPath = nestedPathLine.trim();
                         executeScript(nestedPath, socket);  // рекурсивный вызов
                         continue;
+
+                    case "export_my_tickets":
+                        exportPath = reader.readLine();
+                        if (exportPath == null) {
+                            System.err.println("Script error: missing output path after export_my_tickets.");
+                            continue;
+                        }
+                        request = new Request(command, new String[0], null);
+                        break;
 
                     default:
                         request = new Request(command, new String[0], null);
@@ -96,7 +111,11 @@ public class ScriptExecutor {
                 if (request != null) {
                     Client.sendRequest(request, socket);
                     Response response = Client.receiveResponse(socket);
-                    System.out.println("Server response: " + response.getMessage());
+                    if (command.equals("export_my_tickets")) {
+                        Client.saveTicketExport(response, exportPath);
+                    } else {
+                        System.out.println("Server response: " + response.getMessage());
+                    }
                 }
             }
 

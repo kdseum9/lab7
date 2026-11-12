@@ -3,6 +3,7 @@ package org.example.client;
 import org.example.common.Factory.TicketFactory;
 import org.example.common.Request;
 import org.example.common.Response;
+import org.example.common.TicketExportData;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -59,6 +60,7 @@ public class Client {
 
     private static boolean handleCommand(String command, Scanner scanner, SocketChannel socket, ScriptExecutor scriptExecutor) {
         Request request;
+        String exportPath = null;
 
         try {
             switch (command.toLowerCase()) {
@@ -110,6 +112,12 @@ public class Client {
                     scriptExecutor.executeScript(filePath, socket);
                     return true;
 
+                case "export_my_tickets":
+                    System.out.print("Enter output JSON file path: ");
+                    exportPath = scanner.nextLine();
+                    request = new Request(command, new String[0], null);
+                    break;
+
                 default:
                     request = new Request(command, new String[0], null);
                     break;
@@ -117,6 +125,9 @@ public class Client {
 
             sendRequest(request, socket);
             Response response = receiveResponse(socket);
+            if (command.equalsIgnoreCase("export_my_tickets")) {
+                return saveTicketExport(response, exportPath);
+            }
             System.out.println("Server response: " + response.getMessage());
             if (response.getData() != null) {
                 System.out.println("Server data: " + response.getData());
@@ -126,6 +137,25 @@ public class Client {
 
         } catch (Exception e) {
             System.err.println("Failed to process command: " + e.getMessage());
+            return false;
+        }
+    }
+
+    static boolean saveTicketExport(Response response, String outputPath) {
+        if (!(response.getData() instanceof TicketExportData exportData)) {
+            String message = response.getMessage() == null
+                    ? "The server did not return ticket export data."
+                    : response.getMessage();
+            System.err.println("Ticket export failed: " + message);
+            return false;
+        }
+
+        try {
+            int count = TicketJsonExporter.write(exportData, outputPath);
+            System.out.println("Successfully exported " + count + " ticket(s) to " + outputPath + ".");
+            return true;
+        } catch (IOException e) {
+            System.err.println("Ticket export failed: " + e.getMessage());
             return false;
         }
     }
