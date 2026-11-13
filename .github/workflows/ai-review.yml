@@ -1,4 +1,3 @@
-
 name: AI Code Review
 
 on:
@@ -38,7 +37,6 @@ jobs:
             ':(exclude,glob)**/dist/**'
             ':(exclude,glob)**/generated/**'
           )
-
           while IFS= read -r binary_file; do
             if [ -n "$binary_file" ]; then
               excluded+=(":(exclude,literal)$binary_file")
@@ -57,18 +55,42 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: node review.js diff.txt > review.md
 
-      - name: Post PR comment
+      - name: Post PR review and inline comments
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pull_number = context.issue.number;
             const body = fs.readFileSync('review.md', 'utf8');
 
             await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body
+              owner, repo, issue_number: pull_number, body
             });
 
-# Retry review after updating error logging
+            if (!fs.existsSync('review-result.json')) return;
+            const review = JSON.parse(fs.readFileSync('review-result.json', 'utf8'));
+            if (!Array.isArray(review.comments) || review.comments.length === 0) return;
+
+            const comments = review.comments.map(comment => ({
+              path: comment.file,
+              line: comment.line,
+              side: 'RIGHT',
+              body: `**${comment.severity.toUpperCase()}: ${comment.message}**\n\n${comment.rule ? `Пункт инструкции: ${comment.rule}\n\n` : ''}Причина: ${comment.reason}`
+            }));
+
+            try {
+              await github.rest.pulls.createReview({
+                owner,
+                repo,
+                pull_number,
+                commit_id: context.payload.pull_request.head.sha,
+                event: 'COMMENT',
+                body: 'AI Code Review: замечания привязаны к строкам изменённых файлов.',
+                comments
+              });
+            } catch (error) {
+              core.warning(`Не удалось добавить inline-комментарии: ${error.message}`);
+              core.warning('Общий комментарий со строками уже опубликован выше.');
+            }
