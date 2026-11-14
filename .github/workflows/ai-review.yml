@@ -94,3 +94,27 @@ jobs:
               core.warning(`Не удалось добавить inline-комментарии: ${error.message}`);
               core.warning('Общий комментарий со строками уже опубликован выше.');
             }
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Evaluate test PR
+        if: github.event.pull_request.number == 10
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          python evaluate_review.py --out "evaluation-${{ github.run_id }}-${{ github.run_attempt }}.json"
+
+      - name: Save evaluation evidence
+        if: always() && github.event.pull_request.number == 10
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            review-result.json
+            review.md
+            diff.txt
+            evaluation-*.json
+          if-no-files-found: warn
