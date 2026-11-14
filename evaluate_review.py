@@ -21,6 +21,17 @@ valid_extra — подтвержденный реальный дефект вн�
 Не делай вывод об отсутствии проверки вне diff, если соответствующий код не представлен. Дай конкретное обоснование каждому решению.'''
 
 
+def read_text(path, allow_invalid=False):
+    data = Path(path).read_bytes()
+    try:
+        return data.decode('utf-8-sig')
+    except UnicodeDecodeError as error:
+        if not allow_invalid:
+            raise ValueError(f'{path}: invalid UTF-8 at byte {error.start}; save this file as UTF-8') from None
+        print(f'Warning: {path} contains non-UTF-8 bytes; these bytes are represented as \\xNN for evaluation', file=sys.stderr)
+        return data.decode('utf-8', errors='backslashreplace')
+
+
 def calculate(review, verdict):
     comments = review['comments']
     rows = verdict['assessments']
@@ -80,18 +91,18 @@ def main():
     out = Path(a.out)
     if out.exists() or Path(str(out) + '.judge.json').exists():
         raise ValueError('Output already exists; use a unique run name')
-    review = json.loads(Path(a.review).read_text())
+    review = json.loads(read_text(a.review))
     if not isinstance(review.get('comments'), list):
         raise ValueError('Review must contain comments array')
     if a.verdict:
-        verdict = json.loads(Path(a.verdict).read_text())
+        verdict = json.loads(read_text(a.verdict))
     elif not review['comments']:
         verdict = {'assessments': []}
     else:
         key = os.environ.get('OPENROUTER_API_KEY')
         if not key:
             raise ValueError('Set OPENROUTER_API_KEY (same secret as reviewer)')
-        payload = {'ground_truth': Path(a.truth).read_text(), 'diff': Path(a.diff).read_text(),
+        payload = {'ground_truth': read_text(a.truth), 'diff': read_text(a.diff, allow_invalid=True),
                    'comments': review['comments']}
         body = {'model': a.model, 'temperature': 0, 'max_tokens': 12000,
                 'messages': [{'role': 'system', 'content': RULES},
@@ -108,10 +119,10 @@ def main():
             raw = raw.split('\n', 1)[1].rsplit('```', 1)[0]
         verdict = json.loads(raw)
     # Save raw verdict even if schema validation fails, for debugging and audit.
-    Path(str(out) + '.judge.json').write_text(json.dumps(verdict, ensure_ascii=False, indent=2))
+    Path(str(out) + '.judge.json').write_text(json.dumps(verdict, ensure_ascii=False, indent=2), encoding='utf-8')
     result = calculate(review, verdict)
     result['judge_model'] = a.model if not a.verdict else 'saved_verdict'
-    out.write_text(json.dumps(result, ensure_ascii=False, indent=2))
+    out.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
     print(json.dumps({k: result[k] for k in ('tp', 'fp', 'fn', 'precision', 'recall', 'f1', 'status')}, ensure_ascii=False))
 
 if __name__ == '__main__':
