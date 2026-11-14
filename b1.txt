@@ -1,0 +1,14 @@
+[—¬≈–»“№ C7] src/main/java/org/example/client/Client.java:1 Ч ѕросмотри новые ветки/методы: бизнес-логику по одному dispatch обнаружить нельз€.
+[—¬≈–»“№ C7] src/main/java/org/example/server/Server.java:1 Ч ѕросмотри новые ветки/методы: бизнес-логику по одному dispatch обнаружить нельз€.
+[—¬≈–»“№ C3] src/main/java/org/example/server/command/HelpCommand.java:11 Ч —верь проверки полей моделей; пр€мой вызов валидатора не найден, возможен вызов через менеджер.
+[—¬≈–»“№ C4] src/main/java/org/example/server/command/HelpCommand.java:11 Ч —верь ошибочные случаи и использование подход€щих существующих исключений.
+[—¬≈–»“№ C5] src/main/java/org/example/server/command/HelpCommand.java:11 Ч —верь состав Request, Client и ScriptExecutor дл€ этой команды.
+[—¬≈–»“№ C7] src/main/java/org/example/server/command/HelpCommand.java:11 Ч —верь, что команда координирует менеджеры, без переноса их ответственности.
+[—¬≈–»“№ C3] src/main/java/org/example/server/command/RenameTicketCommand.java:9 Ч —верь проверки полей моделей; пр€мой вызов валидатора не найден, возможен вызов через менеджер.
+[—¬≈–»“№ C4] src/main/java/org/example/server/command/RenameTicketCommand.java:9 Ч —верь ошибочные случаи и использование подход€щих существующих исключений.
+[—¬≈–»“№ C5] src/main/java/org/example/server/command/RenameTicketCommand.java:9 Ч —верь состав Request, Client и ScriptExecutor дл€ этой команды.
+[—¬≈–»“№ C7] src/main/java/org/example/server/command/RenameTicketCommand.java:9 Ч —верь, что команда координирует менеджеры, без переноса их ответственности.
+
+Java-файлов: 45; нарушений: 0; ручных проверок: 10.
+»сходный коммит: 21b4784926d9c73fcb6b3ebb65ded0d2eccac617; старых находок осталось: 0; устранено: 0.
+“екстовые признаки; нет AST, анализа потоков данных, запуска Java или тестов. Ќоль находок не доказывает соблюдение всех правил.
